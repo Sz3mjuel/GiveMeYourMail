@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center">
+        <Button
+            android:id="@+id/btnBestPlayer"
+            android:layout_width="150dp"
+            android:layout_height="50dp"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:text="Nyertesek"/>
+
+        <Button
+            android:id="@+id/btnNewPlayer"
+            android:layout_width="150dp"
+            android:layout_height="50dp"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:text="Új játékos"/>
+
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/list_players"
+        android:layout_margin="@dimen/activity_horizontal_margin"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:dividerHeight="1dp"
+        android:divider="@android:color/black"
+        />
+
+</LinearLayout>

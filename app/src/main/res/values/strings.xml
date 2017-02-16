@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">GiveMeYourMail</string>
+    <string name="editTextName">Név...</string>
+    <string name="e_mail_c_m">E-Mail cím...</string>
+    <string name="editTextPhone">Telefonszám...</string>
+    <string name="editTextTime">Időeredmény...</string>
+</resources>
