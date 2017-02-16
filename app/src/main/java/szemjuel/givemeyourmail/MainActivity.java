@@ -17,27 +17,28 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static ArrayList<Player> players = new ArrayList<>();
+    static ArrayList<Player> players = new ArrayList<>();
+    PlayerListAdapter adapter;
+    ListView listView;
+    final static int TODAY = getDay();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.list);
 
-        players.add(new Player("Gipsz Jakab", "gipsz.jakab@gmail.com", GameType.Type.TYPE1, 00112233, 10300, GameType.Day.PENTEK));
-        players.add(new Player("Daniella", "lpnanni@gmail.com", GameType.Type.TYPE1, 00112233, 10200, GameType.Day.PENTEK));
-        players.add(new Player("Zsolt", "zsolt@gmail.com", GameType.Type.TYPE2, 00112233, 12300, GameType.Day.PENTEK));
-        players.add(new Player("Péter", "gipsz.jakab@gmail.com", GameType.Type.TYPE2, 00112233, 11140, GameType.Day.PENTEK));
-        players.add(new Player("István", "gipsz.jakab@gmail.com", GameType.Type.TYPE3, 00112233, 14330, GameType.Day.PENTEK));
-        players.add(new Player("László", "gipsz.jakab@gmail.com", GameType.Type.TYPE4, 00112233, 12230, GameType.Day.PENTEK));
+        fillList();
 
-        final PlayerListAdapter adapter = new PlayerListAdapter(getApplicationContext(), players);
+        adapter = new PlayerListAdapter(getApplicationContext(), players);
 
-        final ListView listView = (ListView) findViewById(R.id.list_players);
+        listView = (ListView) findViewById(R.id.list_players);
         listView.setAdapter(adapter);
+
+        adapter.clear();
 
         Button btnNewPlayer = (Button) findViewById(R.id.btnNewPlayer);
         btnNewPlayer.setOnClickListener(new View.OnClickListener() {
@@ -57,6 +58,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void fillList() {
+        players.add(new Player("Gipsz Jakab", "gipsz.jakab@gmail.com", GameType.Type.TYPE1, 00112233, 10300, TODAY));
+        players.add(new Player("Daniella", "lpnanni@gmail.com", GameType.Type.TYPE1, 00112233, 10200, TODAY));
+        players.add(new Player("Zsolt", "zsolt@gmail.com", GameType.Type.TYPE2, 00112233, 12300, TODAY));
+        players.add(new Player("Péter", "gipsz.jakab@gmail.com", GameType.Type.TYPE2, 00112233, 11140, TODAY));
+        players.add(new Player("István", "gipsz.jakab@gmail.com", GameType.Type.TYPE3, 00112233, 14330, TODAY));
+        players.add(new Player("László", "gipsz.jakab@gmail.com", GameType.Type.TYPE4, 00112233, 12230, TODAY));
+    }
+
     public static class NewPlayerDialog extends DialogFragment{
 
         @NonNull
@@ -105,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
                             }else{
                                 type = GameType.Type.TYPE4;
                             }
-                            players.add(new Player(etName.getText().toString(), etEmail.getText().toString(), type, phone, time, GameType.Day.PENTEK));
+                            players.add(new Player(etName.getText().toString(), etEmail.getText().toString(), type, phone, time, TODAY));
                         }
                     })
                     .setNegativeButton("Mégse", new DialogInterface.OnClickListener() {
@@ -131,6 +142,10 @@ public class MainActivity extends AppCompatActivity {
             ArrayList<Player> bestPlayers = new ArrayList<>();
             int [] tmpPlayers = getBestPlayers(players);
             for(int i = 0; i < tmpPlayers.length; i++){
+                for(int j = i+1;j < tmpPlayers.length; j++){
+                    if(tmpPlayers[j]==tmpPlayers[i])
+                        i++;
+                }
                     bestPlayers.add(players.get(tmpPlayers[i]));
             }
 
@@ -140,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
             listView.setAdapter(adapter);
 
             builder.setView(view);
-            builder.setPositiveButton("Oké", new DialogInterface.OnClickListener() {
+            builder.setPositiveButton("Rendben", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.dismiss();
@@ -150,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
             return builder.create();
         }
     }
+
     public static int[] getBestPlayers(ArrayList<Player> players){
 
         int[] bestPlayersID={0,0,0,0};
@@ -187,5 +203,10 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return bestPlayersID;
+    }
+
+    protected static int getDay(){
+        Calendar c = Calendar.getInstance();
+        return c.get(Calendar.DAY_OF_MONTH);
     }
 }

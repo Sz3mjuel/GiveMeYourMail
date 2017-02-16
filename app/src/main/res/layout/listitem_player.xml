@@ -24,6 +24,7 @@
             android:layout_height="wrap_content"
             android:text="Gipsz Jakab"
             android:textSize="25sp"
+            android:textColor="#212121"
             />
         <TextView
             android:id="@+id/txtEmail"
@@ -31,20 +32,23 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Gipsz.jakab@gmail.com"
-            android:textSize="15sp"/>
+            android:textSize="15sp"
+            android:textColor="#424242"/>
         <TextView
             android:id="@+id/txtTime"
             android:layout_alignEnd="@id/txtEmail"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="1:35"
-            android:textSize="30sp"/>
+            android:textSize="30sp"
+            android:textColor="#212121"/>
         <TextView
             android:id="@+id/txtPhone"
             android:layout_below="@id/txtEmail"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="+36202480285"
+            android:textColor="#424242"
             android:textSize="15sp"/>
     </RelativeLayout>
 </LinearLayout>

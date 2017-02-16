@@ -7,9 +7,9 @@ public class Player implements GameType{
     private Type mGameType;
     private int mPhone;
     private int mTime;
-    private Day mDay;
+    private int mDay;
 
-    public Player(String mName, String mEmail, Type mGameType, int mPhone, int mTime, Day mDay) {
+    public Player(String mName, String mEmail, Type mGameType, int mPhone, int mTime, int mDay) {
         this.mName = mName;
         this.mEmail = mEmail;
         this.mGameType = mGameType;
@@ -58,11 +58,11 @@ public class Player implements GameType{
         this.mTime = mTime;
     }
 
-    public Day getmDay() {
+    public int getmDay() {
         return mDay;
     }
 
-    public void setmDay(Day mDay) {
+    public void setmDay(int mDay) {
         this.mDay = mDay;
     }
 
