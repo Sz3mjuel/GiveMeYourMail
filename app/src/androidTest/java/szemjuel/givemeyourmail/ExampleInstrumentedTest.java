@@ -23,4 +23,9 @@ public class ExampleInstrumentedTest {
 
         assertEquals("szemjuel.givemeyourmail", appContext.getPackageName());
     }
+    @Test
+    public void isListFine(){
+
+
+    }
 }

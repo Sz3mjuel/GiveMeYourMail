@@ -166,45 +166,53 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * @param players
+     * @return int[]
+     */
     public static int[] getBestPlayers(ArrayList<Player> players){
 
-        int[] bestPlayersID={0,0,0,0};
+        int[] startPlayersID={0,0,0,0};
 
         for(int i = 0 ; i < players.size() ; i++){
             GameType.Type type = players.get(i).getmGameType();
             if(type.equals(GameType.Type.TYPE1)){
-                if(bestPlayersID[0]==0)
-                    bestPlayersID[0]=i;
+                if(startPlayersID[0]==0){
+                    startPlayersID[0]=i;
+                }else {
+                    if (players.get(startPlayersID[0]).getmTime() < players.get(i).getmTime())
+                        startPlayersID[0] = i;
+                }
+
             }else if(type.equals(GameType.Type.TYPE2)){
-                if(bestPlayersID[1]==0)
-                    bestPlayersID[1]=i;
+                if(startPlayersID[1]==0){
+                    startPlayersID[1]=i;
+                }else {
+                    if (players.get(startPlayersID[1]).getmTime() < players.get(i).getmTime())
+                        startPlayersID[1] = i;
+                }
             }else if(type.equals(GameType.Type.TYPE3)){
-                if(bestPlayersID[2]==0)
-                    bestPlayersID[2]=i;
+                if(startPlayersID[2]==0){
+                    startPlayersID[2]=i;
+                }else {
+                    if (players.get(startPlayersID[2]).getmTime() < players.get(i).getmTime())
+                        startPlayersID[2] = i;
+                }
             }else{
-                if(bestPlayersID[3]==0)
-                    bestPlayersID[3]=i;
+                if(startPlayersID[0]==0){
+                    startPlayersID[0]=i;
+                }else {
+                    if (players.get(startPlayersID[3]).getmTime() < players.get(i).getmTime())
+                        startPlayersID[3] = i;
+                }
             }
         }
-        for(int i = 0; i < players.size() ; i++){
-            GameType.Type type = players.get(i).getmGameType();
-            if(type.equals(GameType.Type.TYPE1)){
-                if(players.get(bestPlayersID[0]).getmTime()>=players.get(i).getmTime())
-                    bestPlayersID[0]=i;
-            }else if(type.equals(GameType.Type.TYPE2)){
-                if(players.get(bestPlayersID[1]).getmTime()>=players.get(i).getmTime())
-                    bestPlayersID[1]=i;
-            }else if(type.equals(GameType.Type.TYPE3)){
-                if(players.get(bestPlayersID[2]).getmTime()>=players.get(i).getmTime())
-                    bestPlayersID[2]=i;
-            }else{
-                if(players.get(bestPlayersID[3]).getmTime()>=players.get(i).getmTime())
-                    bestPlayersID[3]=i;
-            }
-        }
-        return bestPlayersID;
+        return startPlayersID;
     }
 
+    /**
+     * @return int
+     */
     protected static int getDay(){
         Calendar c = Calendar.getInstance();
         return c.get(Calendar.DAY_OF_MONTH);
