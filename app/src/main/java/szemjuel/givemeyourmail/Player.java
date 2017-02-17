@@ -68,13 +68,6 @@ public class Player implements GameType{
 
     @Override
     public String toString() {
-        return "Player{" +
-                "mName='" + mName + '\'' +
-                ", mEmail='" + mEmail + '\'' +
-                ", mGameType=" + mGameType +
-                ", mPhone=" + mPhone +
-                ", mTime=" + mTime +
-                ", mDay=" + mDay +
-                '}';
+        return mName + ';' + mEmail + ';' + mGameType + ';' + mPhone + ';' + mTime + ';' + mDay + '\0';
     }
 }

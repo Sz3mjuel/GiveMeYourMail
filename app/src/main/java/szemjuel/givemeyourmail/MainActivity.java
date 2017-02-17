@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
         listView = (ListView) findViewById(R.id.list_players);
         listView.setAdapter(adapter);
 
-        adapter.clear();
+        //adapter.clear();
 
         Button btnNewPlayer = (Button) findViewById(R.id.btnNewPlayer);
         btnNewPlayer.setOnClickListener(new View.OnClickListener() {
@@ -62,9 +62,9 @@ public class MainActivity extends AppCompatActivity {
     private void fillList() {
         players.add(new Player("Gipsz Jakab", "gipsz.jakab@gmail.com", GameType.Type.TYPE1, 00112233, 10300, TODAY));
         players.add(new Player("Daniella", "lpnanni@gmail.com", GameType.Type.TYPE1, 00112233, 10200, TODAY));
-        players.add(new Player("Zsolt", "zsolt@gmail.com", GameType.Type.TYPE2, 00112233, 12300, TODAY));
+        players.add(new Player("Zsolt", "zsolt@gmail.com", GameType.Type.TYPE2, 00112233, 12300, 10));
         players.add(new Player("Péter", "gipsz.jakab@gmail.com", GameType.Type.TYPE2, 00112233, 11140, TODAY));
-        players.add(new Player("István", "gipsz.jakab@gmail.com", GameType.Type.TYPE3, 00112233, 14330, TODAY));
+        //players.add(new Player("István", "gipsz.jakab@gmail.com", GameType.Type.TYPE3, 00112233, 14330, TODAY));
         players.add(new Player("László", "gipsz.jakab@gmail.com", GameType.Type.TYPE4, 00112233, 12230, TODAY));
     }
 
@@ -140,13 +140,12 @@ public class MainActivity extends AppCompatActivity {
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
             ArrayList<Player> bestPlayers = new ArrayList<>();
-            int [] tmpPlayers = getBestPlayers(players);
-            for(int i = 0; i < tmpPlayers.length; i++){
-                for(int j = i+1;j < tmpPlayers.length; j++){
-                    if(tmpPlayers[j]==tmpPlayers[i])
-                        i++;
-                }
-                    bestPlayers.add(players.get(tmpPlayers[i]));
+
+            DailyWinners dailyWinners = getBestPlayers(players);
+
+            for(int i = 0; i < dailyWinners.getStartPlayersID().length; i++){
+                if(dailyWinners.getIsType()[i] == true)
+                    bestPlayers.add(players.get(dailyWinners.getStartPlayersID()[i]));
             }
 
             PlayerListAdapter adapter = new PlayerListAdapter(getContext(), bestPlayers);
@@ -166,53 +165,56 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * @param players
-     * @return int[]
-     */
-    public static int[] getBestPlayers(ArrayList<Player> players){
+    public static DailyWinners getBestPlayers(ArrayList<Player> players){
 
-        int[] startPlayersID={0,0,0,0};
+        DailyWinners dailyWinners = new DailyWinners();
+
+        int[] startPlayersID={60000,60000,60000,60000};
+        boolean[] isType = {false, false, false, false};
 
         for(int i = 0 ; i < players.size() ; i++){
             GameType.Type type = players.get(i).getmGameType();
-            if(type.equals(GameType.Type.TYPE1)){
-                if(startPlayersID[0]==0){
+            if(type.equals(GameType.Type.TYPE1) && players.get(i).getmDay() == TODAY){
+                isType[0]=true;
+                if(startPlayersID[0]==60000){
                     startPlayersID[0]=i;
                 }else {
                     if (players.get(startPlayersID[0]).getmTime() < players.get(i).getmTime())
                         startPlayersID[0] = i;
                 }
 
-            }else if(type.equals(GameType.Type.TYPE2)){
-                if(startPlayersID[1]==0){
+            }else if(type.equals(GameType.Type.TYPE2) && players.get(i).getmDay() == TODAY){
+                isType[1]=true;
+                if(startPlayersID[1]==60000){
                     startPlayersID[1]=i;
                 }else {
                     if (players.get(startPlayersID[1]).getmTime() < players.get(i).getmTime())
                         startPlayersID[1] = i;
                 }
-            }else if(type.equals(GameType.Type.TYPE3)){
-                if(startPlayersID[2]==0){
+            }else if(type.equals(GameType.Type.TYPE3) && players.get(i).getmDay() == TODAY){
+                isType[2]=true;
+                if(startPlayersID[2]==60000){
                     startPlayersID[2]=i;
                 }else {
                     if (players.get(startPlayersID[2]).getmTime() < players.get(i).getmTime())
                         startPlayersID[2] = i;
                 }
-            }else{
-                if(startPlayersID[0]==0){
-                    startPlayersID[0]=i;
+            }else if(players.get(i).getmDay() == TODAY){
+                isType[3]=true;
+                if(startPlayersID[3]==60000){
+                    startPlayersID[3]=i;
                 }else {
                     if (players.get(startPlayersID[3]).getmTime() < players.get(i).getmTime())
                         startPlayersID[3] = i;
                 }
             }
         }
-        return startPlayersID;
+        dailyWinners.setIsType(isType);
+        dailyWinners.setStartPlayersID(startPlayersID);
+
+        return dailyWinners;
     }
 
-    /**
-     * @return int
-     */
     protected static int getDay(){
         Calendar c = Calendar.getInstance();
         return c.get(Calendar.DAY_OF_MONTH);
