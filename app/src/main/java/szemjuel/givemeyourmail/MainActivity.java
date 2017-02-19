@@ -2,6 +2,7 @@ package szemjuel.givemeyourmail;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -19,6 +20,12 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import com.opencsv.CSVWriter;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -27,14 +34,25 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     static ArrayList<Player> players = new ArrayList<>();
-    PlayerListAdapter adapter;
+    static PlayerListAdapter adapter;
     ListView listView;
     final static int TODAY = getDay();
+    File file;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.list);
+
+        try {
+            file = new File("players.csv");
+            if (!file.exists()) {
+                file.createNewFile();
+                Toast.makeText(getApplicationContext(), "File elkésztve", Toast.LENGTH_LONG).show();
+            }
+        }catch (IOException e){
+            e.printStackTrace();
+        }
 
         if(adapter != null) {
             adapter.clear();
@@ -53,7 +71,6 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 DialogFragment fm = new NewPlayerDialog();
                 fm.show(getSupportFragmentManager(), "newPlayer");
-                adapter.notifyDataSetChanged();
             }
         });
         Button btnBestPlayers = (Button) findViewById(R.id.btnBestPlayer);
@@ -67,21 +84,56 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void read() {
-        InputStream inputStream = getResources().openRawResource(R.raw.players);
-        CSVReader csvReader = new CSVReader(inputStream);
-        List<String[]> readCSV = csvReader.read();
-        for(String [] playersData : readCSV){
+        InputStream inputStream = null;
 
-            int[] tmpPTD = getPlayerTime(playersData);
+        try {
+            inputStream = new FileInputStream(file);
 
-            GameType.Type type = getType(playersData[2]);
+            CSVReader csvReader = new CSVReader(inputStream);
+            List<String[]> readCSV = csvReader.read();
 
-            players.add(new Player(playersData[0],playersData[1],type,tmpPTD[0], tmpPTD[1], tmpPTD[2]));
-        }
-        if(readCSV.size() == players.size()){
-            Toast.makeText(getApplicationContext(), players.size()+" játékos importálva", Toast.LENGTH_SHORT).show();
+            for(String [] playersData : readCSV){
+
+                int[] tmpPTD = getPlayerTime(playersData);
+
+                GameType.Type type = getType(playersData[2]);
+
+                players.add(new Player(playersData[0],playersData[1],type,tmpPTD[0], tmpPTD[1], tmpPTD[2]));
+            }
+            if(readCSV.size() == players.size()){
+                Toast.makeText(getApplicationContext(), players.size()+" játékos importálva", Toast.LENGTH_SHORT).show();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
+
+    private static void write()throws IOException{
+        CSVWriter writer = new CSVWriter(new FileWriter("players.csv"));
+
+        List<String[]> data = new ArrayList<>();
+
+        for(Player p : players){
+
+            String type = "";
+            if(p.getmGameType() == GameType.Type.TYPE1){
+                type = "TYPE1";
+            }else if(p.getmGameType() == GameType.Type.TYPE2){
+                type = "TYPE2";
+            }else if(p.getmGameType() == GameType.Type.TYPE3){
+                type = "TYPE3";
+            }else{
+                type = "TYPE4";
+            }
+            data.add(new String[]{p.getmName(), p.getmEmail(), type, Integer.toString(p.getmPhone()),
+                    Integer.toString(p.getmTime()), Integer.toString(p.getmDay())});
+        }
+
+        writer.writeAll(data);
+        writer.close();
+    }
+
 
     @Nullable
     private GameType.Type getType(String s) {
@@ -179,6 +231,12 @@ public class MainActivity extends AppCompatActivity {
                                 dialog.dismiss();
                             }else {
                                 players.add(new Player(etName.getText().toString(), etEmail.getText().toString(), type, phone, time, TODAY));
+                                try {
+                                    write();
+                                }catch (IOException ex){
+                                    Log.getStackTraceString(ex);
+                                }
+                                adapter.notifyDataSetChanged();
                             }
                         }
                     })
