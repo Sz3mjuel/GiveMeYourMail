@@ -4,9 +4,11 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -15,9 +17,12 @@ import android.widget.ListView;
 import android.widget.NumberPicker;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Toast;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,14 +36,16 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.list);
 
-        fillList();
+        if(adapter != null) {
+            adapter.clear();
+        }
+
+        read();
 
         adapter = new PlayerListAdapter(getApplicationContext(), players);
 
         listView = (ListView) findViewById(R.id.list_players);
         listView.setAdapter(adapter);
-
-        //adapter.clear();
 
         Button btnNewPlayer = (Button) findViewById(R.id.btnNewPlayer);
         btnNewPlayer.setOnClickListener(new View.OnClickListener() {
@@ -59,13 +66,57 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void fillList() {
-        players.add(new Player("Gipsz Jakab", "gipsz.jakab@gmail.com", GameType.Type.TYPE1, 00112233, 10300, TODAY));
-        players.add(new Player("Daniella", "lpnanni@gmail.com", GameType.Type.TYPE1, 00112233, 10200, TODAY));
-        players.add(new Player("Zsolt", "zsolt@gmail.com", GameType.Type.TYPE2, 00112233, 12300, 10));
-        players.add(new Player("Péter", "gipsz.jakab@gmail.com", GameType.Type.TYPE2, 00112233, 11140, TODAY));
-        //players.add(new Player("István", "gipsz.jakab@gmail.com", GameType.Type.TYPE3, 00112233, 14330, TODAY));
-        players.add(new Player("László", "gipsz.jakab@gmail.com", GameType.Type.TYPE4, 00112233, 12230, TODAY));
+    private void read() {
+        InputStream inputStream = getResources().openRawResource(R.raw.players);
+        CSVReader csvReader = new CSVReader(inputStream);
+        List<String[]> readCSV = csvReader.read();
+        for(String [] playersData : readCSV){
+
+            int[] tmpPTD = getPlayerTime(playersData);
+
+            GameType.Type type = getType(playersData[2]);
+
+            players.add(new Player(playersData[0],playersData[1],type,tmpPTD[0], tmpPTD[1], tmpPTD[2]));
+        }
+        if(readCSV.size() == players.size()){
+            Toast.makeText(getApplicationContext(), players.size()+" játékos importálva", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Nullable
+    private GameType.Type getType(String s) {
+        String string = s.substring(s.length()-1);
+        int typeInt = Integer.parseInt(string);
+
+        GameType.Type type = null;
+        switch (typeInt){
+            case 1:
+                type = GameType.Type.TYPE1;
+                break;
+            case 2:
+                type = GameType.Type.TYPE2;
+                break;
+            case 3:
+                type = GameType.Type.TYPE3;
+                break;
+            case 4:
+                type = GameType.Type.TYPE4;
+                break;
+        }
+        return type;
+    }
+
+    private int[] getPlayerTime(String[] playersData) {
+        int[] tmpPTD = {0,0,0};
+
+        try{
+            tmpPTD[0] = Integer.parseInt(playersData[3]);
+            tmpPTD[1] = Integer.parseInt(playersData[4]);
+            tmpPTD[2] = Integer.parseInt(playersData[5]);
+        }catch(Exception e){
+            Log.e("PraseException", Log.getStackTraceString(e));
+        }
+        return tmpPTD;
     }
 
     public static class NewPlayerDialog extends DialogFragment{
@@ -90,6 +141,7 @@ public class MainActivity extends AppCompatActivity {
                     .setPositiveButton("Mentés", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
+
                             EditText etName = (EditText) getDialog().findViewById(R.id.etName);
                             EditText etEmail = (EditText) getDialog().findViewById(R.id.etEmail);
                             EditText etPhone = (EditText) getDialog().findViewById(R.id.etPhone);
@@ -98,10 +150,15 @@ public class MainActivity extends AppCompatActivity {
 
                             String unitedPick = "1"+Integer.toString(etMin.getValue())+Integer.toString(etSec.getValue())+"0";
 
-                            int phone, time;
+                            int phone=0;
+                            int time=500;
 
-                            phone = Integer.parseInt(etPhone.getText().toString());
-                            time = Integer.parseInt(unitedPick);
+                            try {
+                                phone = Integer.parseInt(etPhone.getText().toString());
+                                time = Integer.parseInt(unitedPick);
+                            }catch (NumberFormatException ex){
+                                Log.e(getTag(), "NumberFormatException");
+                            }
 
                             GameType.Type type;
                             int radioButtonID = radioGroup.getCheckedRadioButtonId();
@@ -116,7 +173,13 @@ public class MainActivity extends AppCompatActivity {
                             }else{
                                 type = GameType.Type.TYPE4;
                             }
-                            players.add(new Player(etName.getText().toString(), etEmail.getText().toString(), type, phone, time, TODAY));
+
+                            if(etName.getText().toString().equals("") && etEmail.getText().toString().equals("")){
+                                Toast.makeText(getContext(), "A mentés nem sikerült,tölts ki mindent!", Toast.LENGTH_LONG).show();
+                                dialog.dismiss();
+                            }else {
+                                players.add(new Player(etName.getText().toString(), etEmail.getText().toString(), type, phone, time, TODAY));
+                            }
                         }
                     })
                     .setNegativeButton("Mégse", new DialogInterface.OnClickListener() {
@@ -125,7 +188,6 @@ public class MainActivity extends AppCompatActivity {
                             dialog.dismiss();
                         }
                     });
-
             return builder.create();
         }
     }

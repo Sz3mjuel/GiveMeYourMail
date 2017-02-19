@@ -50,7 +50,8 @@
             android:id="@+id/radioType1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Type1"/>
+            android:text="Type1"
+            android:checked="true"/>
 
         <RadioButton
             android:id="@+id/radioType2"
