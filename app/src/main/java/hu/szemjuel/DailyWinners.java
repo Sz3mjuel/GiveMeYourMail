@@ -1,4 +1,4 @@
-package szemjuel.givemeyourmail;
+package hu.szemjuel;
 
 /**
  * Created by Máté Anna on 2017.02.17..

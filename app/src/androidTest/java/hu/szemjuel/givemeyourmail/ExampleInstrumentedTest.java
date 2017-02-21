@@ -1,4 +1,4 @@
-package szemjuel.givemeyourmail;
+package hu.szemjuel.givemeyourmail;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,7 +21,7 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("szemjuel.givemeyourmail", appContext.getPackageName());
+        assertEquals("hu.szemjuel.givemeyourmail", appContext.getPackageName());
     }
     @Test
     public void isListFine(){

@@ -1,16 +1,18 @@
-package szemjuel.givemeyourmail;
+package hu.szemjuel;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.nfc.Tag;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -20,16 +22,15 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
-import com.opencsv.CSVWriter;
-
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
+
+import hu.szemjuel.givemeyourmail.R;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -37,33 +38,32 @@ public class MainActivity extends AppCompatActivity {
     static PlayerListAdapter adapter;
     ListView listView;
     final static int TODAY = getDay();
-    File file;
+
+    static DBHelper db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.list);
+        setContentView(R.layout.main);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-        try {
-            file = new File("players.csv");
-            if (!file.exists()) {
-                file.createNewFile();
-                Toast.makeText(getApplicationContext(), "File elkésztve", Toast.LENGTH_LONG).show();
-            }
-        }catch (IOException e){
-            e.printStackTrace();
-        }
 
-        if(adapter != null) {
-            adapter.clear();
-        }
+        db = new DBHelper(this);
 
-        read();
+        getAllData();
 
         adapter = new PlayerListAdapter(getApplicationContext(), players);
 
         listView = (ListView) findViewById(R.id.list_players);
         listView.setAdapter(adapter);
+
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                return exportAllData();
+            }
+        });
 
         Button btnNewPlayer = (Button) findViewById(R.id.btnNewPlayer);
         btnNewPlayer.setOnClickListener(new View.OnClickListener() {
@@ -83,88 +83,92 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void read() {
-        InputStream inputStream = null;
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    public static void addData(Player p){
+        db.insertData(p);
+    }
+    public void getAllData(){
+        Cursor res = db.getAllData();
+        if(res.getCount() == 0){
+            return;
+        }
+        while(res.moveToNext()){
+
+            GameType.Type TYPE = getType(res);
+
+            String[] s = {res.getString(4), res.getString(5), res.getString(6)};
+            int[] playerTime = getPlayerTime(s);
+
+            players.add(new Player(res.getString(1), res.getString(2), TYPE, playerTime[0], playerTime[1], playerTime[2]));
+        }
+    }
+    public boolean exportAllData(){
+        Cursor res = db.getAllData();
+        if(res.getCount() == 0){
+            return false;
+        }
+        String fileName = getApplicationContext().getFilesDir().getPath().toString() + "/export.txt";
+        String line;
+        File file = new File(fileName);
+        if(!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         try {
-            inputStream = new FileInputStream(file);
-
-            CSVReader csvReader = new CSVReader(inputStream);
-            List<String[]> readCSV = csvReader.read();
-
-            for(String [] playersData : readCSV){
-
-                int[] tmpPTD = getPlayerTime(playersData);
-
-                GameType.Type type = getType(playersData[2]);
-
-                players.add(new Player(playersData[0],playersData[1],type,tmpPTD[0], tmpPTD[1], tmpPTD[2]));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));
+            while (res.moveToNext()){
+                line = res.getString(1)+"; "+res.getString(2)+"; "+res.getString(3)+"; "+res.getString(4)+"; "+res.getString(5)+"; "+res.getString(6);
+                bw.append(line);
+                bw.newLine();
             }
-            if(readCSV.size() == players.size()){
-                Toast.makeText(getApplicationContext(), players.size()+" játékos importálva", Toast.LENGTH_SHORT).show();
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
+            bw.close();
+            Toast.makeText(getApplicationContext(), "Exportálva: "+fileName, Toast.LENGTH_LONG).show();
+        }catch (IOException ioe){
+            ioe.printStackTrace();
         }
+        return true;
     }
 
-    private static void write()throws IOException{
-        CSVWriter writer = new CSVWriter(new FileWriter("players.csv"));
-
-        List<String[]> data = new ArrayList<>();
-
-        for(Player p : players){
-
-            String type = "";
-            if(p.getmGameType() == GameType.Type.TYPE1){
-                type = "TYPE1";
-            }else if(p.getmGameType() == GameType.Type.TYPE2){
-                type = "TYPE2";
-            }else if(p.getmGameType() == GameType.Type.TYPE3){
-                type = "TYPE3";
-            }else{
-                type = "TYPE4";
-            }
-            data.add(new String[]{p.getmName(), p.getmEmail(), type, Integer.toString(p.getmPhone()),
-                    Integer.toString(p.getmTime()), Integer.toString(p.getmDay())});
-        }
-
-        writer.writeAll(data);
-        writer.close();
-    }
-
-
-    @Nullable
-    private GameType.Type getType(String s) {
-        String string = s.substring(s.length()-1);
-        int typeInt = Integer.parseInt(string);
-
-        GameType.Type type = null;
-        switch (typeInt){
+    @NonNull
+    private GameType.Type getType(Cursor res) {
+        int type = Integer.parseInt(res.getString(3));
+        GameType.Type TYPE;
+        switch (type){
             case 1:
-                type = GameType.Type.TYPE1;
+                TYPE = GameType.Type.TYPE1;
                 break;
             case 2:
-                type = GameType.Type.TYPE2;
+                TYPE = GameType.Type.TYPE2;
                 break;
             case 3:
-                type = GameType.Type.TYPE3;
+                TYPE = GameType.Type.TYPE3;
                 break;
             case 4:
-                type = GameType.Type.TYPE4;
+                TYPE = GameType.Type.TYPE4;
+                break;
+            default:
+                TYPE = GameType.Type.TYPE1;
                 break;
         }
-        return type;
+        return TYPE;
     }
 
     private int[] getPlayerTime(String[] playersData) {
         int[] tmpPTD = {0,0,0};
 
         try{
-            tmpPTD[0] = Integer.parseInt(playersData[3]);
-            tmpPTD[1] = Integer.parseInt(playersData[4]);
-            tmpPTD[2] = Integer.parseInt(playersData[5]);
+            tmpPTD[0] = Integer.parseInt(playersData[0]);
+            tmpPTD[1] = Integer.parseInt(playersData[1]);
+            tmpPTD[2] = Integer.parseInt(playersData[2]);
         }catch(Exception e){
             Log.e("PraseException", Log.getStackTraceString(e));
         }
@@ -230,12 +234,10 @@ public class MainActivity extends AppCompatActivity {
                                 Toast.makeText(getContext(), "A mentés nem sikerült,tölts ki mindent!", Toast.LENGTH_LONG).show();
                                 dialog.dismiss();
                             }else {
-                                players.add(new Player(etName.getText().toString(), etEmail.getText().toString(), type, phone, time, TODAY));
-                                try {
-                                    write();
-                                }catch (IOException ex){
-                                    Log.getStackTraceString(ex);
-                                }
+                                Player tmpPlayer = new Player(etName.getText().toString(), etEmail.getText().toString(), type, phone, time, TODAY);
+                                players.add(tmpPlayer);
+                                addData(tmpPlayer);
+
                                 adapter.notifyDataSetChanged();
                             }
                         }
@@ -264,8 +266,9 @@ public class MainActivity extends AppCompatActivity {
             DailyWinners dailyWinners = getBestPlayers(players);
 
             for(int i = 0; i < dailyWinners.getStartPlayersID().length; i++){
-                if(dailyWinners.getIsType()[i] == true)
+                if(dailyWinners.getIsType()[i]) {
                     bestPlayers.add(players.get(dailyWinners.getStartPlayersID()[i]));
+                }
             }
 
             PlayerListAdapter adapter = new PlayerListAdapter(getContext(), bestPlayers);

@@ -1,11 +1,14 @@
-package szemjuel.givemeyourmail;
+package hu.szemjuel.givemeyourmail;
 
 import org.junit.Test;
 
 import java.util.ArrayList;
 
+import hu.szemjuel.GameType;
+import hu.szemjuel.Player;
+
 import static org.junit.Assert.*;
-import static szemjuel.givemeyourmail.MainActivity.getDay;
+import static hu.szemjuel.MainActivity.getDay;
 
 
 public class ExampleUnitTest {

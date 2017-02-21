@@ -1,4 +1,4 @@
-package szemjuel.givemeyourmail;
+package hu.szemjuel;
 
 import java.io.BufferedReader;
 import java.io.IOException;

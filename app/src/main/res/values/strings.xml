@@ -4,4 +4,5 @@
     <string name="e_mail_c_m">E-Mail cím...</string>
     <string name="editTextPhone">Telefonszám...</string>
     <string name="editTextTime">Időeredmény...</string>
+    <string name="title_activity_main2">Main2Activity</string>
 </resources>

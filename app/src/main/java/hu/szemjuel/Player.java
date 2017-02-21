@@ -1,4 +1,4 @@
-package szemjuel.givemeyourmail;
+package hu.szemjuel;
 
 public class Player implements GameType{
 
