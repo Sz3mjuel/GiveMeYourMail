@@ -1,8 +1,11 @@
 package hu.szemjuel;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
@@ -25,7 +28,6 @@ import android.widget.Toast;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -61,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                return exportAllData();
+                return sendEmail(exportAllData());
             }
         });
 
@@ -92,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
     public static void addData(Player p){
         db.insertData(p);
     }
+
     public void getAllData(){
         Cursor res = db.getAllData();
         if(res.getCount() == 0){
@@ -107,35 +110,42 @@ public class MainActivity extends AppCompatActivity {
             players.add(new Player(res.getString(1), res.getString(2), TYPE, playerTime[0], playerTime[1], playerTime[2]));
         }
     }
-    public boolean exportAllData(){
+
+    public String exportAllData(){
         Cursor res = db.getAllData();
-        if(res.getCount() == 0){
-            return false;
-        }
-        String fileName = getApplicationContext().getFilesDir().getPath().toString() + "/export.txt";
-        String line;
-        File file = new File(fileName);
-        if(!file.exists()) {
-            try {
-                file.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        String export = "";
+        if(res.getCount() == 0) {
+            return "";
         }
 
-        try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));
-            while (res.moveToNext()){
-                line = res.getString(1)+"; "+res.getString(2)+"; "+res.getString(3)+"; "+res.getString(4)+"; "+res.getString(5)+"; "+res.getString(6);
-                bw.append(line);
-                bw.newLine();
-            }
-            bw.close();
-            Toast.makeText(getApplicationContext(), "Exportálva: "+fileName, Toast.LENGTH_LONG).show();
-        }catch (IOException ioe){
-            ioe.printStackTrace();
+        while (res.moveToNext()){
+            export = export + res.getString(1)+"; "+res.getString(2)+"; "+res.getString(3)+"; "+res.getString(4)+"; "+res.getString(5)+"; "+res.getString(6) + "\n";
         }
-        return true;
+        return export;
+    }
+
+    protected boolean sendEmail(String export) {
+        Log.i("Send email", "");
+        String[] TO = {"samu.zsolt@fuldugo.hu"};
+        String[] CC = {""};
+        Intent emailIntent = new Intent(Intent.ACTION_SEND);
+
+        emailIntent.setData(Uri.parse("mailto:"));
+        emailIntent.setType("text/plain");
+        emailIntent.putExtra(Intent.EXTRA_EMAIL, TO);
+        emailIntent.putExtra(Intent.EXTRA_CC, CC);
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "EXPORT");
+        emailIntent.putExtra(Intent.EXTRA_TEXT, export);
+
+        try {
+            startActivity(Intent.createChooser(emailIntent, "Send mail..."));
+            finish();
+            Log.i("Finished sending email", "");
+            return true;
+        } catch (android.content.ActivityNotFoundException ex) {
+            Toast.makeText(MainActivity.this, "There is no email client installed.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
     }
 
     @NonNull
