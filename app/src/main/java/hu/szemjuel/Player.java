@@ -1,6 +1,6 @@
 package hu.szemjuel;
 
-public class Player implements GameType{
+public class Player implements GameType {
 
     private String mName;
     private String mEmail;

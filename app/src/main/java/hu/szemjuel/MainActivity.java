@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -25,10 +26,6 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -50,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
         db = new DBHelper(this);
 
         getAllData();
@@ -64,6 +60,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 return sendEmail(exportAllData());
+            }
+        });
+
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                return db.deleteData(players.get(position));
             }
         });
 
@@ -214,10 +217,10 @@ public class MainActivity extends AppCompatActivity {
 
                             RadioGroup radioGroup = (RadioGroup) getDialog().findViewById(R.id.btnRadioGroup);
 
-                            String unitedPick = "1"+Integer.toString(etMin.getValue())+Integer.toString(etSec.getValue())+"0";
+                            String unitedPick = "2"+Integer.toString(etMin.getValue())+Integer.toString(etSec.getValue())+"000";
 
                             int phone=0;
-                            int time=500;
+                            int time=10000;
 
                             try {
                                 phone = Integer.parseInt(etPhone.getText().toString());
@@ -240,7 +243,11 @@ public class MainActivity extends AppCompatActivity {
                                 type = GameType.Type.TYPE4;
                             }
 
-                            if(etName.getText().toString().equals("") && etEmail.getText().toString().equals("")){
+                            if(etName.getText().toString().equals("")){
+                                Toast.makeText(getContext(), "A mentés nem sikerült,tölts ki mindent!", Toast.LENGTH_LONG).show();
+                                dialog.dismiss();
+                            }
+                            else if(etEmail.getText().toString().equals("")){
                                 Toast.makeText(getContext(), "A mentés nem sikerült,tölts ki mindent!", Toast.LENGTH_LONG).show();
                                 dialog.dismiss();
                             }else {

@@ -12,7 +12,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DBHelper extends SQLiteOpenHelper {
 
-    //tring mName, String mEmail, Type mGameType, int mPhone, int mTime, int mDay
     private static final String DB_NAME = "players.db";
     private static final String TABLE_NAME = "players_table";
     private static final String COL_1 = "ID";
@@ -59,6 +58,17 @@ public class DBHelper extends SQLiteOpenHelper {
             return false;
         }else{
             return true;
+        }
+    }
+
+    public boolean deleteData(Player p){
+        SQLiteDatabase db = this.getReadableDatabase();
+        try{
+            db.delete(TABLE_NAME, COL_2 + "= ?", new String[] {p.getmName()});
+            return true;
+        }catch (Exception e){
+            e.printStackTrace();
+            return false;
         }
     }
 
